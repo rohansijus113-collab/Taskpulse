@@ -1,0 +1,25 @@
+{
+  "name": "taskpulse",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "db:push": "prisma generate && prisma db push",
+    "server": "node backend/server.js",
+    "client": "vite --host 0.0.0.0 --port 3000 --config vite.config.js",
+    "start": "npm run db:push && concurrently -k -n API,WEB -c magenta,cyan \"npm run server\" \"npm run client\"",
+    "build": "prisma generate && vite build --config vite.config.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.10.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "prisma": "^6.10.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "vite": "^6.3.5"
+  }
+}

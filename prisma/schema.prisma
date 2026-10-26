@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  WAITING
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Level {
+  LOW
+  HIGH
+}
+
+enum EnergyLevel {
+  HIGH_FOCUS
+  LOW_ENERGY
+  QUICK_WIN
+}
+
+enum Recurrence {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model Task {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String            @default("")
+  status          Status            @default(PENDING)
+  priority        Priority          @default(MEDIUM)
+  urgency         Level             @default(LOW)
+  importance      Level             @default(LOW)
+  energyLevel     EnergyLevel       @default(HIGH_FOCUS)
+  estimatedMinutes Int
+  actualMinutes    Int              @default(0)
+  dueDate         DateTime
+  recurrence      Recurrence        @default(NONE)
+  streakScore     Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  subtasks        Subtask[]
+  dependencies    TaskDependency[]  @relation("TaskDependsOn")
+  blockedBy       TaskDependency[]  @relation("TaskBlockedBy")
+  tags            Tag[]
+  comments        Comment[]
+
+  @@index([status])
+  @@index([dueDate])
+  @@index([priority])
+}
+
+model Subtask {
+  id          Int      @id @default(autoincrement())
+  title       String
+  isCompleted Boolean  @default(false)
+  taskId      Int
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model TaskDependency {
+  id             Int  @id @default(autoincrement())
+  taskId         Int
+  dependsOnTaskId Int
+  task           Task @relation("TaskDependsOn", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask  Task @relation("TaskBlockedBy", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  color String @default("#8b5cf6")
+  tasks Task[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  body      String
+  author    String   @default("You")
+  createdAt DateTime @default(now())
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
