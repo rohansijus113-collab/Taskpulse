@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Status {
@@ -40,26 +41,26 @@ enum Recurrence {
 }
 
 model Task {
-  id              Int              @id @default(autoincrement())
-  title           String
-  description     String            @default("")
-  status          Status            @default(PENDING)
-  priority        Priority          @default(MEDIUM)
-  urgency         Level             @default(LOW)
-  importance      Level             @default(LOW)
-  energyLevel     EnergyLevel       @default(HIGH_FOCUS)
+  id               Int              @id @default(autoincrement())
+  title            String
+  description      String           @default("")
+  status           Status           @default(PENDING)
+  priority         Priority         @default(MEDIUM)
+  urgency          Level            @default(LOW)
+  importance       Level            @default(LOW)
+  energyLevel      EnergyLevel      @default(HIGH_FOCUS)
   estimatedMinutes Int
   actualMinutes    Int              @default(0)
-  dueDate         DateTime
-  recurrence      Recurrence        @default(NONE)
-  streakScore     Int               @default(0)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  subtasks        Subtask[]
-  dependencies    TaskDependency[]  @relation("TaskDependsOn")
-  blockedBy       TaskDependency[]  @relation("TaskBlockedBy")
-  tags            Tag[]
-  comments        Comment[]
+  dueDate          DateTime
+  recurrence       Recurrence       @default(NONE)
+  streakScore      Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  subtasks         Subtask[]
+  dependencies     TaskDependency[] @relation("TaskDependsOn")
+  blockedBy        TaskDependency[] @relation("TaskBlockedBy")
+  tags             Tag[]
+  comments         Comment[]
 
   @@index([status])
   @@index([dueDate])
@@ -67,19 +68,19 @@ model Task {
 }
 
 model Subtask {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   title       String
-  isCompleted Boolean  @default(false)
+  isCompleted Boolean @default(false)
   taskId      Int
-  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task        Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 model TaskDependency {
-  id             Int  @id @default(autoincrement())
-  taskId         Int
+  id              Int  @id @default(autoincrement())
+  taskId          Int
   dependsOnTaskId Int
-  task           Task @relation("TaskDependsOn", fields: [taskId], references: [id], onDelete: Cascade)
-  dependsOnTask  Task @relation("TaskBlockedBy", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  task            Task @relation("TaskDependsOn", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask   Task @relation("TaskBlockedBy", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
 
   @@unique([taskId, dependsOnTaskId])
   @@index([taskId])
